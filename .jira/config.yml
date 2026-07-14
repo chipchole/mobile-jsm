@@ -6,6 +6,5 @@ deployments:
     environments: # select the environments you'd like to use with this feature
     - Production
   services:
-  - Billing
     ids:
-b:YXJpOmNsb3VkOmdyYXBoOjpzZXJ2aWNlL2UxMTBlZDRiLTVkZTMtNGQzNC04MjZhLWUyZmRmM2I3M2UxMS9hNTdiNGI4NC0wYjM0LTExZjEtODk4Mi0xMjJlYmQ0ODczY2Y=
+    b:YXJpOmNsb3VkOmdyYXBoOjpzZXJ2aWNlL2UxMTBlZDRiLTVkZTMtNGQzNC04MjZhLWUyZmRmM2I3M2UxMS9hNTdiNGI4NC0wYjM0LTExZjEtODk4Mi0xMjJlYmQ0ODczY2Y=
