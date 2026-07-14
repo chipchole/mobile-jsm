@@ -1,2 +1,1 @@
 Sample read
-Sample
