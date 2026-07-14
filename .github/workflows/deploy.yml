@@ -1,0 +1,17 @@
+name: Deploy Webstore
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: Production
+    steps:
+
+uses: actions/checkout@v4
+name: Deploy application
+        run: |
+          echo "Deploying webstore v1.$GITHUB_RUN_NUMBER to Production..."
+          sleep 5
+          echo "Deployment complete :white_check_mark:"
