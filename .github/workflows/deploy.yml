@@ -1,1 +1,73 @@
-{"name": "Deploy Webstore", "on": {"push": {"branches": ["main"]}}, "jobs": {"deploy": {"runs-on": "ubuntu-latest", "environment": "Production", "steps": [{"name": "Deploy application", "run": "echo 'Deploying webstore to Production' && sleep 5 && echo 'Deployment complete'"}]}}}
+name: Deploy Webstore
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: Production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy application
+        id: deploy
+        run: |
+          echo "Deploying webstore to Production"
+          sleep 5
+          echo "Deployment complete"
+          # To demo a failed deployment for the RCA/risk agent story, swap the line above for:
+          # exit 1
+
+      # ---- Build a rich, human-readable description for the change ticket ----
+      - name: Build deployment description
+        id: build_desc
+        if: always()
+        run: |
+          STATUS="success"
+          if [ "${{ steps.deploy.outcome }}" != "success" ]; then
+            STATUS="failure"
+          fi
+          {
+            echo "desc<<EOF"
+            echo "App: Webstore"
+            echo "Version: ${{ github.sha }}"
+            echo "Branch: ${{ github.ref_name }}"
+            echo "Servers: prod-au-syd-01, prod-au-syd-02"
+            echo "Deployed by: ${{ github.actor }}"
+            echo "Commit message: ${{ github.event.head_commit.message }}"
+            echo "Status: $STATUS"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+
+      # ---- Extract Jira issue keys from the commit message ----
+      - name: Extract Jira issue keys
+        id: jira_keys
+        if: always()
+        run: |
+          KEYS=$(echo "${{ github.event.head_commit.message }}" | grep -oE '[A-Z]+-[0-9]+' | paste -sd "," -)
+          echo "jira-keys=$KEYS" >> $GITHUB_OUTPUT
+
+      # ---- Push deployment info to Jira (Development panel) ----
+      - name: Upload deployment info to Jira
+        if: always() && steps.jira_keys.outputs.jira-keys != ''
+        uses: HighwayThree/jira-upload-deployment-info@master
+        with:
+          client-id: '${{ secrets.vw7OQbnb5CLLoe4Yzp4rSOiPVzPaQycN }}'
+          client-secret: '${{ secrets.ATOAFFMxlPHlowAd9rCRLNKXfBqzHK4uXoOoMlSTK2FyE9XSdaHR5dGBlkJNVFcKjfvG550AE70E }}'
+          cloud-instance-base-url: '${{ secrets.cm-demo-enterprise.atlassian.net }}'
+          issue-keys: '${{ steps.jira_keys.outputs.jira-keys }}'
+          display-name: 'Webstore — Production Deploy'
+          description: '${{ steps.build_desc.outputs.desc }}'
+          state: '${{ steps.build_desc.outputs.status }}'
+          environment-id: 'prod-au-syd'
+          environment-display-name: 'Production — Sydney'
+          environment-type: 'production'
+
+      # ---- Fail the job loudly if the deploy step failed ----
+      - name: Fail job if deployment failed
+        if: steps.deploy.outcome != 'success'
+        run: exit 1
