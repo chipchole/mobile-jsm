@@ -56,9 +56,9 @@ jobs:
         if: always() && steps.jira_keys.outputs.jira-keys != ''
         uses: HighwayThree/jira-upload-deployment-info@master
         with:
-          client-id: '${{ secrets.vw7OQbnb5CLLoe4Yzp4rSOiPVzPaQycN }}'
-          client-secret: '${{ secrets.ATOAFFMxlPHlowAd9rCRLNKXfBqzHK4uXoOoMlSTK2FyE9XSdaHR5dGBlkJNVFcKjfvG550AE70E }}'
-          cloud-instance-base-url: '${{ secrets.cm-demo-enterprise.atlassian.net }}'
+          client-id: '${{ secrets.JIRA_CLIENT_ID }}'
+          client-secret: '${{ secrets.JIRA_CLIENT_SECRET }}'
+          cloud-instance-base-url: '${{ secrets.JIRA_BASE_URL }}'
           issue-keys: '${{ steps.jira_keys.outputs.jira-keys }}'
           display-name: 'Webstore — Production Deploy'
           description: '${{ steps.build_desc.outputs.desc }}'
