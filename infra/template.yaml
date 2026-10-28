@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Contact Centre callback service (Amazon Connect outbound callbacks)
+
+Parameters:
+  Environment:
+    Type: String
+    AllowedValues: [development, production]
+  ConnectInstanceId:
+    Type: String
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Timeout: 10
+    MemorySize: 256
+    Tracing: Active
+
+Resources:
+  CallbackFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub contact-centre-callback-${Environment}
+      Handler: services.callback.handler.lambda_handler
+      CodeUri: ../
+      ReservedConcurrentExecutions: 50
+      Environment:
+        Variables:
+          APP_ENV: !Ref Environment
+          CONNECT_INSTANCE_ID: !Ref ConnectInstanceId
+          TOKEN_REFRESH_SKEW_SECONDS: "120"
+          RETRY_MAX_ATTEMPTS: "4"
+          RETRY_BASE_DELAY_SECONDS: "0.25"
+          RETRY_MAX_DELAY_SECONDS: "8"
+      Events:
+        MobileApi:
+          Type: Api
+          Properties:
+            Path: /v1/callbacks
+            Method: post
+
+Outputs:
+  CallbackFunctionArn:
+    Value: !GetAtt CallbackFunction.Arn

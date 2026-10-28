@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  CloudWatch alarms for the Contact Centre callback service. All alarms
+  notify the JSM Operations integration (SNS topic below), which creates
+  alerts against the "Contact Centre" service in Jira Service Management.
+
+Parameters:
+  Environment:
+    Type: String
+  JsmAlertsTopicArn:
+    Type: String
+
+Resources:
+  CallbackAuthFailureRate:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "[${Environment}] Contact Centre callback 401 rate > 5%"
+      AlarmDescription: >
+        Callback Lambda is receiving 401 Unauthorized from Amazon Connect.
+        Usually token expiry or refresh failure. Runbook: docs/RUNBOOK.md#callback-401s
+      Namespace: ContactCentre/Callback
+      MetricName: ConnectAuthFailures
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 3
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions: [!Ref JsmAlertsTopicArn]
+
+  ConnectThrottling:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "[${Environment}] Amazon Connect ThrottlingException on StartOutboundVoiceContact"
+      AlarmDescription: >
+        Connect is throttling outbound callback requests. Check retry behaviour
+        and Lambda concurrency. Runbook: docs/RUNBOOK.md#throttling
+      Namespace: ContactCentre/Callback
+      MetricName: ConnectThrottles
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 20
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions: [!Ref JsmAlertsTopicArn]
+
+  CallbackBacklog:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "[${Environment}] Callback backlog > 200 pending"
+      AlarmDescription: Customers who requested a callback have not been called. Runbook: docs/RUNBOOK.md#backlog
+      Namespace: ContactCentre/Callback
+      MetricName: PendingCallbacks
+      Statistic: Maximum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 200
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions: [!Ref JsmAlertsTopicArn]
+
+  PriorityQueueFailover:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "[${Environment}] Priority callbacks failing over to general queue"
+      AlarmDescription: Priority queue unavailable or over max wait; callbacks are failing over. Runbook: docs/RUNBOOK.md#failover
+      Namespace: ContactCentre/Callback
+      MetricName: PriorityFailovers
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 10
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions: [!Ref JsmAlertsTopicArn]
+
+  CallbackLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "[${Environment}] Callback Lambda error rate > 2%"
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub contact-centre-callback-${Environment}
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 3
+      Threshold: 10
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions: [!Ref JsmAlertsTopicArn]
