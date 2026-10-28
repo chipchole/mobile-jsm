@@ -1,0 +1,15 @@
+# Callback routing rules. Evaluated top to bottom; first match wins.
+# Owned by the Contact Centre Workforce team. Changes need a CI/CD change
+# in ITO (see docs/CHANGE-PROCESS.md).
+rules:
+  - name: priority-customers
+    match: { segment: priority }
+    queue: priority
+  - name: network-faults
+    match: { reason: fault }
+    queue: faults
+  - name: billing-enquiries
+    match: { reason: billing }
+    queue: billing
+  - name: default
+    queue: general

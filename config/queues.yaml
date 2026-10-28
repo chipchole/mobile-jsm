@@ -1,0 +1,30 @@
+# Amazon Connect queues used for callbacks.
+# hours are local time [open, close) in the queue's timezone.
+# failover_queue is used when the queue is closed or its current wait
+# exceeds max_wait_seconds.
+queues:
+  priority:
+    queue_id: "q-7f3a1c2e-priority"
+    hours: [7, 21]
+    max_wait_seconds: 120
+    failover_queue: general
+  general:
+    queue_id: "q-1b9d44a0-general"
+    hours: [8, 20]
+    max_wait_seconds: 900
+    failover_queue: after_hours
+  billing:
+    queue_id: "q-5c2e8f71-billing"
+    hours: [8, 18]
+    max_wait_seconds: 600
+    failover_queue: general
+  faults:
+    queue_id: "q-9a6b3d10-faults"
+    hours: [0, 24]
+    max_wait_seconds: 300
+    failover_queue: general
+  after_hours:
+    queue_id: "q-0e4f7a55-afterhours"
+    hours: [0, 24]
+    max_wait_seconds: 3600
+    timezone: Australia/Sydney
