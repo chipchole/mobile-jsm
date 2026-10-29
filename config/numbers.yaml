@@ -1,0 +1,22 @@
+# Inbound numbers claimed in Amazon Connect, and the contact flow each one
+# starts. Numbers are from the ACMA/DIA fictitious ranges for this demo.
+numbers:
+  - number: "+61755504100"
+    label: "Queensland general enquiries"
+    flow: inbound-main
+    region: QLD
+    ticket: ITO-9702
+  - number: "+61755504101"
+    label: "Queensland faults"
+    flow: inbound-main
+    region: QLD
+    ticket: ITO-9702
+  - number: "+61255503200"
+    label: "NSW general enquiries"
+    flow: inbound-main
+    region: NSW
+  - number: "+6495550300"
+    label: "ANZ (New Zealand) customers"
+    flow: inbound-main
+    region: NZ
+    ticket: ITO-9867
