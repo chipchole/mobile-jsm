@@ -1,0 +1,26 @@
+{
+  "Version": "2019-10-30",
+  "Name": "inbound-main",
+  "Description": "Main inbound flow: greeting, segment lookup, queue or offer callback.",
+  "StartAction": "greeting",
+  "Actions": [
+    {"Identifier": "greeting", "Type": "MessageParticipant",
+     "Parameters": {"Text": "Thanks for calling. Calls may be recorded for quality and training."},
+     "Transitions": {"NextAction": "lookup-customer"}},
+    {"Identifier": "lookup-customer", "Type": "InvokeLambdaFunction",
+     "Parameters": {"LambdaFunctionARN": "${CustomerLookupFunctionArn}", "InvocationTimeLimitSeconds": "3"},
+     "Transitions": {"NextAction": "set-segment", "Errors": [{"NextAction": "set-queue-general", "ErrorType": "NoMatchingError"}]}},
+    {"Identifier": "set-segment", "Type": "UpdateContactAttributes",
+     "Parameters": {"Attributes": {"segment": "$.External.segment"}},
+     "Transitions": {"NextAction": "check-wait"}},
+    {"Identifier": "check-wait", "Type": "CheckMetricData",
+     "Parameters": {"MetricType": "OldestContactInQueueAgeSeconds"},
+     "Transitions": {"NextAction": "set-queue-general",
+       "Conditions": [{"NextAction": "callback-offer", "Condition": {"Operator": "NumberGreaterThan", "Operands": ["300"]}}]}},
+    {"Identifier": "callback-offer", "Type": "TransferToFlow",
+     "Parameters": {"ContactFlowId": "callback-offer"}, "Transitions": {}},
+    {"Identifier": "set-queue-general", "Type": "UpdateContactTargetQueue",
+     "Parameters": {"QueueId": "q-1b9d44a0-general"}, "Transitions": {"NextAction": "transfer-queue"}},
+    {"Identifier": "transfer-queue", "Type": "TransferContactToQueue", "Parameters": {}, "Transitions": {}}
+  ]
+}

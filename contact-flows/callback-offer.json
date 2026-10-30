@@ -1,0 +1,22 @@
+{
+  "Version": "2019-10-30",
+  "Name": "callback-offer",
+  "Description": "Offers a callback when waits are long; invokes the callback service Lambda.",
+  "StartAction": "offer",
+  "Actions": [
+    {"Identifier": "offer", "Type": "GetParticipantInput",
+     "Parameters": {"Text": "Wait times are longer than usual. Press 1 and we'll call you back without losing your place.", "StoreInput": "False", "InputTimeLimitSeconds": "6"},
+     "Transitions": {"NextAction": "transfer-queue",
+       "Conditions": [{"NextAction": "schedule-callback", "Condition": {"Operator": "Equals", "Operands": ["1"]}}]}},
+    {"Identifier": "schedule-callback", "Type": "InvokeLambdaFunction",
+     "Parameters": {"LambdaFunctionARN": "${CallbackFunctionArn}", "InvocationTimeLimitSeconds": "8"},
+     "Transitions": {"NextAction": "confirm",
+       "Errors": [{"NextAction": "callback-failed", "ErrorType": "NoMatchingError"}]}},
+    {"Identifier": "confirm", "Type": "MessageParticipant",
+     "Parameters": {"Text": "Done. We'll call you back shortly. Goodbye."}, "Transitions": {"NextAction": "disconnect"}},
+    {"Identifier": "callback-failed", "Type": "MessageParticipant",
+     "Parameters": {"Text": "Sorry, we couldn't book a callback. Please stay on the line."}, "Transitions": {"NextAction": "transfer-queue"}},
+    {"Identifier": "transfer-queue", "Type": "TransferContactToQueue", "Parameters": {}, "Transitions": {}},
+    {"Identifier": "disconnect", "Type": "DisconnectParticipant", "Parameters": {}, "Transitions": {}}
+  ]
+}
