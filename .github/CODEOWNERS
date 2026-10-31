@@ -1,0 +1,6 @@
+# Contact Centre platform team owns everything by default
+*                                   @chipchole
+/services/callback/connect_client.py @chipchole
+/services/callback/retry.py          @chipchole
+/config/routing_rules.yaml           @chipchole
+/infra/                              @chipchole
