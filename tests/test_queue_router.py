@@ -39,3 +39,13 @@ def test_after_hours_failover(router):
 def test_default_rule(router):
     d = router.route(segment="standard", reason="something-else", at=OPEN, current_wait={})
     assert d.rule == "default"
+
+
+def test_campaign_calls_go_to_overflow(router):
+    d = router.route(segment="standard", reason="campaign", at=OPEN, current_wait={})
+    assert d.queue.key == "overflow"
+
+
+def test_general_fails_over_to_overflow_when_busy(router):
+    d = router.route(segment="standard", reason="general", at=OPEN, current_wait={"general": 1200})
+    assert d.queue.key == "overflow" and d.failed_over

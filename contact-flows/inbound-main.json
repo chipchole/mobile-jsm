@@ -16,7 +16,7 @@
     {"Identifier": "check-wait", "Type": "CheckMetricData",
      "Parameters": {"MetricType": "OldestContactInQueueAgeSeconds"},
      "Transitions": {"NextAction": "set-queue-general",
-       "Conditions": [{"NextAction": "callback-offer", "Condition": {"Operator": "NumberGreaterThan", "Operands": ["300"]}}]}},
+       "Conditions": [{"NextAction": "callback-offer", "Condition": {"Operator": "NumberGreaterThan", "Operands": ["240"]}}]}},
     {"Identifier": "callback-offer", "Type": "TransferToFlow",
      "Parameters": {"ContactFlowId": "callback-offer"}, "Transitions": {}},
     {"Identifier": "set-queue-general", "Type": "UpdateContactTargetQueue",
