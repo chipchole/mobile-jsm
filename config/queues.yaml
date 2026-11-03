@@ -12,7 +12,7 @@ queues:
     queue_id: "q-1b9d44a0-general"
     hours: [8, 20]
     max_wait_seconds: 900
-    failover_queue: after_hours
+    failover_queue: overflow
   billing:
     queue_id: "q-5c2e8f71-billing"
     hours: [8, 18]
@@ -28,3 +28,8 @@ queues:
     hours: [0, 24]
     max_wait_seconds: 3600
     timezone: Australia/Sydney
+  overflow:
+    queue_id: "q-6a1f9c3d-overflow"
+    hours: [7, 22]
+    max_wait_seconds: 1800
+    failover_queue: after_hours

@@ -11,5 +11,8 @@ rules:
   - name: billing-enquiries
     match: { reason: billing }
     queue: billing
+  - name: summer-campaign
+    match: { reason: campaign }
+    queue: overflow
   - name: default
     queue: general
