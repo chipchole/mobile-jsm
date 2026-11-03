@@ -2,6 +2,9 @@
 # Owned by the Contact Centre Workforce team. Changes need a CI/CD change
 # in ITO (see docs/CHANGE-PROCESS.md).
 rules:
+  - name: vip-customers
+    match: { segment: VIP }
+    queue: vip
   - name: priority-customers
     match: { segment: priority }
     queue: priority

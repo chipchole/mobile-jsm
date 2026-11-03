@@ -55,6 +55,9 @@ def handle(event: dict, client: ConnectClient | None = None, router: QueueRouter
     body = event.get("body")
     request = json.loads(body) if isinstance(body, str) else (body or event)
 
+    # DEBUG: temporary while we chase the VIP routing issue
+    log.info(f"callback request received: {json.dumps(request)}")
+
     try:
         number = phone.normalise(request["phone_number"])
     except (KeyError, phone.InvalidPhoneNumber) as exc:
@@ -67,6 +70,8 @@ def handle(event: dict, client: ConnectClient | None = None, router: QueueRouter
         at=now,
         current_wait=request.get("current_wait", {}),
     )
+
+    log.info(f"routing {number} ({request.get('customer_name')}) to {decision.queue.key} via {decision.rule}")
 
     try:
         contact_id = client.start_outbound_callback(

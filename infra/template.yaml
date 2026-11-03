@@ -13,7 +13,7 @@ Globals:
   Function:
     Runtime: python3.12
     Timeout: 10
-    MemorySize: 256
+    MemorySize: 512
     Tracing: Active
 
 Resources:
@@ -23,7 +23,7 @@ Resources:
       FunctionName: !Sub contact-centre-callback-${Environment}
       Handler: services.callback.handler.lambda_handler
       CodeUri: ../
-      ReservedConcurrentExecutions: 50
+      ReservedConcurrentExecutions: 200
       Environment:
         Variables:
           APP_ENV: !Ref Environment
