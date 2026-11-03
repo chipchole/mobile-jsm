@@ -1,13 +1,9 @@
 """Amazon Connect API client used by the callback service.
 
-Authentication uses OAuth2 client credentials. The identity provider issues
-access tokens with a 1 hour lifetime (`expires_in` = 3600). We cache the
-token in memory for the life of the Lambda execution environment and
-refresh it `token_refresh_skew_seconds` before it expires.
-
-If Connect still returns 401 (for example the token was revoked, or the
-signing key rotated), we invalidate the cached token and retry the request
-once with a fresh token. See ITO-9851 / ITO-9849 for background.
+Authentication uses OAuth2 client credentials. To reduce load on the
+Customer Identity API (ITO-9849) the token is cached in memory for
+`token_cache_seconds` (default 12h) and shared by every request in the
+Lambda execution environment.
 """
 from __future__ import annotations
 
@@ -71,9 +67,9 @@ class TokenProvider:
         if resp.status != 200:
             raise AuthError(f"token endpoint returned {resp.status}")
         token = resp.body["access_token"]
-        expires_in = int(resp.body.get("expires_in", 3600))
-        self._cached = CachedToken(value=token, expires_at=now + expires_in)
-        log_event(log, "token_refreshed", expires_in=expires_in)
+        ttl = self._settings.token_cache_seconds
+        self._cached = CachedToken(value=token, expires_at=now + ttl)
+        log_event(log, "token_refreshed", cache_seconds=ttl)
         return token
 
 
@@ -118,10 +114,5 @@ class ConnectClient:
         url = self._s.connect_api_url + path
         resp = self._t.post(url, json=payload, headers={"Authorization": f"Bearer {self._tokens.get()}"})
         if resp.status == 401:
-            # Token rejected: drop it and retry exactly once with a new one.
-            log_event(log, "token_rejected_retrying", path=path)
-            self._tokens.invalidate()
-            resp = self._t.post(url, json=payload, headers={"Authorization": f"Bearer {self._tokens.get()}"})
-            if resp.status == 401:
-                raise AuthError("Connect rejected a freshly issued token")
+            raise AuthError("Connect rejected the access token")
         return resp
