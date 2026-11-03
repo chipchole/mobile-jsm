@@ -3,6 +3,11 @@
 # failover_queue is used when the queue is closed or its current wait
 # exceeds max_wait_seconds.
 queues:
+  vip:
+    queue_id: "q-3d8e2b19-vip"
+    hours: [6, 22]
+    max_wait_seconds: 60
+    failover_queue: premium
   priority:
     queue_id: "q-7f3a1c2e-priority"
     hours: [7, 21]

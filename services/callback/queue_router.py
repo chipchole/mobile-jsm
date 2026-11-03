@@ -65,13 +65,11 @@ class QueueRouter:
         return cls(queues, rules)
 
     def route(self, *, segment: str, reason: str, at: datetime, current_wait: dict[str, int]) -> RoutingDecision:
-        segment = (segment or "").lower()
-        reason = (reason or "").lower()
         for rule in self.rules:
             match = rule.get("match", {})
-            if "segment" in match and match["segment"].lower() != segment:
+            if match.get("segment") not in (None, segment):
                 continue
-            if "reason" in match and match["reason"].lower() != reason:
+            if match.get("reason") not in (None, reason):
                 continue
             return self._with_failover(self.queues[rule["queue"]], rule["name"], at, current_wait)
         raise LookupError("no routing rule matched; routing_rules.yaml must end with a default rule")
