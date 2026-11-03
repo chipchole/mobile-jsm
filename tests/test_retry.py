@@ -5,17 +5,9 @@ import pytest
 from services.callback import retry
 
 
-def test_delays_grow_exponentially_and_are_capped():
-    rng = random.Random(42)
-    caps = [min(8.0, 0.25 * 2 ** i) for i in range(6)]
-    delays = list(retry.backoff_delays(7, 0.25, 8.0, rng))
-    assert len(delays) == 6
-    assert all(0 <= d <= cap for d, cap in zip(delays, caps))
-
-
-def test_jitter_spreads_retries():
-    delays = {round(next(iter(retry.backoff_delays(2, 1.0, 8.0, random.Random(seed)))), 2) for seed in range(20)}
-    assert len(delays) > 10, "retries from many callers must not line up"
+def test_delays_are_short_and_fixed():
+    delays = list(retry.backoff_delays(6, 0.05, 8.0))
+    assert delays == [0.05] * 5
 
 
 def test_non_retryable_errors_are_not_retried():

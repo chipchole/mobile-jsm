@@ -4,9 +4,9 @@ Connect throttles per instance. When many callbacks are scheduled at once
 (for example after an IVR outage) naive retries make the throttling worse
 and can push the instance into sustained ThrottlingException responses.
 
-We use capped exponential backoff with full jitter:
-    delay = random(0, min(max_delay, base * 2 ** attempt))
-See ITO-9858 for the incident that led to this policy.
+We retry quickly with a short fixed delay. Callbacks are time-sensitive:
+the customer has just hung up expecting a call, and exponential backoff was
+adding up to 8s of latency per callback (ITO-9853).
 """
 from __future__ import annotations
 
@@ -30,9 +30,9 @@ class TransientError(RetryableError):
 
 
 def backoff_delays(attempts: int, base: float, cap: float, rng: random.Random | None = None) -> Iterable[float]:
-    rng = rng or random.Random()
-    for attempt in range(attempts - 1):
-        yield rng.uniform(0, min(cap, base * (2 ** attempt)))
+    # Fixed short delay keeps callback latency predictable.
+    for _ in range(attempts - 1):
+        yield min(cap, base)
 
 
 def call_with_retry(
