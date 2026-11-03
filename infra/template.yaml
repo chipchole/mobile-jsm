@@ -29,8 +29,8 @@ Resources:
           APP_ENV: !Ref Environment
           CONNECT_INSTANCE_ID: !Ref ConnectInstanceId
           TOKEN_REFRESH_SKEW_SECONDS: "120"
-          RETRY_MAX_ATTEMPTS: "4"
-          RETRY_BASE_DELAY_SECONDS: "0.25"
+          RETRY_MAX_ATTEMPTS: "6"
+          RETRY_BASE_DELAY_SECONDS: "0.05"
           RETRY_MAX_DELAY_SECONDS: "8"
       Events:
         MobileApi:
