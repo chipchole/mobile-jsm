@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.5.1 – 2026-11-09
+- Raise callback Lambda reserved concurrency 80 → 150 ahead of the summer campaign peak (ITO-9855).
+
 ## 2.5.0 – 2026-11-09
 - Restore capped exponential backoff with full jitter for Amazon Connect retries; fixed-delay retries caused a throttling storm during the callback incident (ITO-9888, ITO-9853).
 
