@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.5.0 – 2026-11-09
+- Restore capped exponential backoff with full jitter for Amazon Connect retries; fixed-delay retries caused a throttling storm during the callback incident (ITO-9888, ITO-9853).
+
 ## 2.4.0 – 2026-11-02
 - Runbook: callback failure triage steps (ITO-9848).
 
