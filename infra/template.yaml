@@ -23,7 +23,7 @@ Resources:
       FunctionName: !Sub contact-centre-callback-${Environment}
       Handler: services.callback.handler.lambda_handler
       CodeUri: ../
-      ReservedConcurrentExecutions: 80
+      ReservedConcurrentExecutions: 150
       Environment:
         Variables:
           APP_ENV: !Ref Environment
