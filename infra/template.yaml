@@ -24,6 +24,7 @@ Resources:
       Handler: services.callback.handler.lambda_handler
       CodeUri: ../
       ReservedConcurrentExecutions: 150
+      Timeout: 30
       Environment:
         Variables:
           APP_ENV: !Ref Environment
@@ -32,6 +33,8 @@ Resources:
           RETRY_MAX_ATTEMPTS: "6"
           RETRY_BASE_DELAY_SECONDS: "0.05"
           RETRY_MAX_DELAY_SECONDS: "8"
+          CRM_TLS_VERIFY: "false"
+          LOG_LEVEL: "DEBUG"
       Events:
         MobileApi:
           Type: Api
