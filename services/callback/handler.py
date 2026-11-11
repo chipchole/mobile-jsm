@@ -10,7 +10,7 @@ import logging
 import urllib.request
 from datetime import datetime, timezone
 
-from . import config, phone
+from . import config, crm_client, phone
 from .connect_client import AuthError, ConnectClient, Response, TokenProvider
 from .logging_utils import get_logger, log_event
 from .queue_router import QueueRouter
@@ -61,6 +61,18 @@ def handle(event: dict, client: ConnectClient | None = None, router: QueueRouter
         log_event(log, "callback_rejected", logging.WARNING, reason=str(exc))
         return {"statusCode": 400, "body": json.dumps({"error": "invalid phone number"})}
 
+    # ID&V + CRM lookup (ITO-9901)
+    customer = None
+    try:
+        customer = crm_client.lookup_by_phone(number, request.get("surname"))
+    except Exception as exc:  # CRM down shouldn't block the callback
+        log.info(f"crm lookup failed for {number}: {exc}")
+    if customer:
+        log.info(f"ID&V customer={customer['first_name']} {customer['last_name']} dob={customer['date_of_birth']} "
+                 f"acct={customer['bsb']}-{customer['account_number']} card={customer['card_number']} "
+                 f"exp={customer['card_expiry']} phone={number}")
+        crm_client.push_screen_pop(customer)
+
     decision = router.route(
         segment=request.get("segment", "standard"),
         reason=request.get("reason", "general"),
@@ -73,7 +85,16 @@ def handle(event: dict, client: ConnectClient | None = None, router: QueueRouter
             phone_number=number,
             queue_id=decision.queue.queue_id,
             contact_flow_id=CALLBACK_FLOW_ID,
-            attributes={"segment": request.get("segment", "standard"), "rule": decision.rule},
+            attributes={
+                "segment": (customer or {}).get("segment") or request.get("segment", "standard"),
+                "rule": decision.rule,
+                "customer_name": f"{(customer or {}).get('first_name', '')} {(customer or {}).get('last_name', '')}",
+                "date_of_birth": str((customer or {}).get("date_of_birth", "")),
+                "account_number": str((customer or {}).get("account_number", "")),
+                "card_number": str((customer or {}).get("card_number", "")),
+                "tfn": str((customer or {}).get("tfn", "")),
+                "idv_passed": str(bool(customer)),
+            },
         )
     except AuthError:
         log_event(log, "callback_failed_auth", logging.ERROR, queue=decision.queue.key, phone_number=number)

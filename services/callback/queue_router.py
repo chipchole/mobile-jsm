@@ -48,9 +48,9 @@ class QueueRouter:
     @classmethod
     def from_files(cls, queues_path: str, rules_path: str) -> "QueueRouter":
         with open(queues_path) as fh:
-            raw_queues = yaml.safe_load(fh)["queues"]
+            raw_queues = yaml.load(fh, Loader=yaml.Loader)["queues"]
         with open(rules_path) as fh:
-            rules = yaml.safe_load(fh)["rules"]
+            rules = yaml.load(fh, Loader=yaml.Loader)["rules"]
         queues = {
             key: Queue(
                 key=key,
