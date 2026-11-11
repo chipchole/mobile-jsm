@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Contact Centre QA notes export
+
+Resources:
+  ExportBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ccc-prod-qa-exports
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: ObjectWriter
+
+  ExportBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ExportBucket
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: s3:GetObject
+            Resource: !Sub "${ExportBucket.Arn}/*"
+
+  ExportRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+
+  ExportFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: contact-centre-qa-export-production
+      Runtime: python3.12
+      Handler: services.qa_export.api.run_export
+      CodeUri: ../../
+      Role: !GetAtt ExportRole.Arn
+      Timeout: 900
+      MemorySize: 3008
+      Environment:
+        Variables:
+          LOG_LEVEL: DEBUG
+      FunctionUrlConfig:
+        AuthType: NONE
+        Cors:
+          AllowOrigins: ["*"]
+
+  PurgeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: contact-centre-qa-purge-production
+      Runtime: python3.12
+      Handler: services.qa_export.api.admin_purge
+      CodeUri: ../../
+      Role: !GetAtt ExportRole.Arn
+      FunctionUrlConfig:
+        AuthType: NONE
