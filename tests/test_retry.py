@@ -12,12 +12,6 @@ def test_delays_grow_exponentially_and_respect_cap():
         assert 0 <= d <= min(4.0, 0.25 * 2 ** n)
 
 
-def test_delays_are_jittered_not_lockstep():
-    a = list(retry.backoff_delays(5, 0.25, 8.0, random.Random(1)))
-    b = list(retry.backoff_delays(5, 0.25, 8.0, random.Random(2)))
-    assert a != b
-
-
 def test_non_retryable_errors_are_not_retried():
     calls = []
 

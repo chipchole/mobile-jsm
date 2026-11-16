@@ -26,7 +26,7 @@ def test_token_is_cached_within_lifetime():
 def test_token_refreshed_after_cache_period():
     _, tokens, transport, clock = make(token_cache_seconds=43200)
     tokens.get()
-    clock.advance(43200 - 119)
+    clock.advance(43200 + 1)  # ITO-9902: refresh skew removed
     assert tokens.get() == "tok-2"
     assert transport.tokens_issued == 2
 

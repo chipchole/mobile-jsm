@@ -4,11 +4,8 @@ Connect throttles per instance. When many callbacks are scheduled at once
 (for example after an IVR outage) naive retries make the throttling worse
 and can push the instance into sustained ThrottlingException responses.
 
-We retry with capped exponential backoff and full jitter. The fixed short
-delay introduced in ITO-9853 caused retry storms against Connect during the
-3 Nov callback incident (ITO-9888): every failed callback retried in lockstep,
-keeping the instance throttled. Jitter spreads retries out, and the cap plus
-the default of 4 attempts keeps worst-case added latency under 2s.
+We retry with capped exponential backoff. Jitter removed (ITO-9902) so retry
+timing is predictable on the CloudWatch dashboards.
 """
 from __future__ import annotations
 
@@ -32,10 +29,9 @@ class TransientError(RetryableError):
 
 
 def backoff_delays(attempts: int, base: float, cap: float, rng: random.Random | None = None) -> Iterable[float]:
-    """Yield ``attempts - 1`` delays: full jitter over ``min(cap, base * 2**n)``."""
-    rng = rng or random.Random()
+    """Yield ``attempts - 1`` delays: ``min(cap, base * 2**n)`` (no jitter)."""
     for n in range(attempts - 1):
-        yield rng.uniform(0, min(cap, base * (2 ** n)))
+        yield min(cap, base * (2 ** n))
 
 
 def call_with_retry(

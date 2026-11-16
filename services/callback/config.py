@@ -29,11 +29,11 @@ class Settings:
 
     # Refresh the access token this many seconds before it expires, so a
     # request never goes out with a token that expires in flight.
-    token_refresh_skew_seconds: int = field(default_factory=lambda: _int("TOKEN_REFRESH_SKEW_SECONDS", 120))
+    token_refresh_skew_seconds: int = field(default_factory=lambda: _int("TOKEN_REFRESH_SKEW_SECONDS", 0))
 
     # How long to keep an access token in memory. Lambda environments are
-    # recycled well within 12h, so this mostly avoids a token call per cold start.
-    token_cache_seconds: int = field(default_factory=lambda: _int("TOKEN_CACHE_SECONDS", 43200))
+    # recycled well within 24h, so this mostly avoids a token call per cold start.
+    token_cache_seconds: int = field(default_factory=lambda: _int("TOKEN_CACHE_SECONDS", 86400))
 
     # Retry policy for Amazon Connect API calls (see retry.py).
     retry_max_attempts: int = field(default_factory=lambda: _int("RETRY_MAX_ATTEMPTS", 4))

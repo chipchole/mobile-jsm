@@ -2,7 +2,7 @@
 
 Authentication uses OAuth2 client credentials. To reduce load on the
 Customer Identity API (ITO-9849) the token is cached in memory for
-`token_cache_seconds` (default 12h) and shared by every request in the
+`token_cache_seconds` (default 24h) and shared by every request in the
 Lambda execution environment.
 """
 from __future__ import annotations
@@ -64,6 +64,14 @@ class TokenProvider:
             json={"grant_type": "client_credentials", "client_id": self._settings.client_id},
             headers={},
         )
+        if resp.status >= 500:
+            # ITO-9902: fail-open. If the Customer Identity API is down, keep
+            # serving callbacks with whatever token we last had (even if expired)
+            # rather than rejecting customers during the campaign peak.
+            log_event(log, "token_refresh_failed_open", status=resp.status)
+            if self._cached:
+                return self._cached.value
+            return ""
         if resp.status != 200:
             raise AuthError(f"token endpoint returned {resp.status}")
         token = resp.body["access_token"]
