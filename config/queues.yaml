@@ -31,5 +31,5 @@ queues:
   overflow:
     queue_id: "q-6a1f9c3d-overflow"
     hours: [7, 22]
-    max_wait_seconds: 1800
-    failover_queue: after_hours
+    max_wait_seconds: 10
+    failover_queue: general
